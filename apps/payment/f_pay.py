@@ -425,17 +425,16 @@ class Payment_Simulator(ITM):
                 _from,msg,imp = x
                 if msg[0] == 'schedule':
                     n += 1
-            if n > 0:
-                # self.tick(1) => TODO
-                # add delay from new "schedules" in simulated wrapper to ideal-world wrapper
-                self.log.debug('Add n={} delay to ideal world wrapper'.format(n))
-                # TODO: check if we really need to increament wrapper delay by n
-                self.ideal_delay += n
-                print('\n\n right before delay', n)
-                self.write('a2w', ('delay',n), n)
-                m = waits(self.pump, self.channels['w2a']);
-                assert m.msg == ("OK",), str(m.msg)
-                self.sim_leaks.extend(leaks)
+        # self.tick(1) => TODO
+        # add delay from new "schedules" in simulated wrapper to ideal-world wrapper
+        self.log.debug('Add n={} delay to ideal world wrapper'.format(n))
+        # TODO: check if we really need to increament wrapper delay by n
+        self.ideal_delay += n
+        print('\n\n right before delay', n)
+        self.write('a2w', ('delay',n), n)
+        m = waits(self.pump, self.channels['w2a']);
+        assert m.msg == ("OK",), str(m.msg)
+        self.sim_leaks.extend(leaks)
 
     def sim_party_output(self, m):
         # If we got output from the party, it outputed a msg to
