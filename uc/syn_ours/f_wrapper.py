@@ -149,7 +149,7 @@ class Syn_FWrapper(UCWrapper):
 
     def poll(self, imp):
         self.assertimp(imp, 1)
-        print("POLL message from Z")
+        print("POLL message from Z, delay: {}".format(self.delay))
         if self.delay > 0:
             self.delay -= 1
             self.write('w2a', ('poll',) )

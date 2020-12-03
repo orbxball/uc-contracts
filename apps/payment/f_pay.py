@@ -454,6 +454,7 @@ class Payment_Simulator(ITM):
         elif msg[0] == 'pay' and _pid == self.P_r: # receiver receives 'pay'
             #if self.ishonest(_sid, self.P_s):
             rnd, idx = self.get_rnd_idx_and_update(msg)
+            print('RND: {}, IDX: {}'.format(rnd, idx))
             self.write_and_wait_expect(
                 ch='a2w', msg=(('exec', rnd, idx), 1),
                 read='w2a', expect=('OK',)
@@ -504,7 +505,7 @@ class Payment_Simulator(ITM):
         # }
         for key, values in self.run_queue.items():
             if len(values) == 0: # no (rnd, idx) for a specific msg
-                del(self.run_queue[key])
+                continue
             for index, pair in enumerate(values):
                 _rnd, _idx = pair
                 if _rnd == rnd:
