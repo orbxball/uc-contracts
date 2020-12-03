@@ -172,7 +172,8 @@ class Payment_Simulator(ITM):
             wrappedProtocolWrapper(prot), # internal simulated protocol
             Syn_FWrapper,
             DummyWrappedAdversary,
-            None
+            None,
+            importargs={'ctx': self.ctx, 'impflag':False}
         )
 
         # Forward the same 'sid' to the simulation
@@ -212,6 +213,7 @@ class Payment_Simulator(ITM):
             sender,msg,imp = leak
             # self.tick(1) => no tick now
             if msg[0] == 'pay':
+                print('\n\n pay leak')
                 # update idealqueue & increase idealdelay by 1
                 self.update_queue(leaks, msg, 1)
 
@@ -300,7 +302,7 @@ class Payment_Simulator(ITM):
         self.ideal_delay -= 1
         if self.ideal_delay == 0:
             self.write_and_wait_expect(
-                ch='a2w', msg=('delay', 1),
+                ch='a2w', msg=('delay', 1), imp=1,
                 read='w2a', expect=('OK',)
             )
             self.ideal_delay += 1
@@ -339,7 +341,7 @@ class Payment_Simulator(ITM):
     def env_delay(self, d, imp):
         # first send this to the emulated wrapper
         self.sim_channels['z2a'].write( ('A2W', ('delay', d), 0))
-        assert waits(self.sim_channels['a2z']).msg[1] == 'OK'
+        assert waits(self.sim_channels['a2z']).msg[1] == ('OK',)
 
         # now send it to the ideal world wrapper
         self.write( 'a2w', ('delay',d), imp)
@@ -423,16 +425,17 @@ class Payment_Simulator(ITM):
                 _from,msg,imp = x
                 if msg[0] == 'schedule':
                     n += 1
-
-        # self.tick(1) => TODO
-        # add delay from new "schedules" in simulated wrapper to ideal-world wrapper
-        self.log.debug('Add n={} delay to ideal world wrapper'.format(n))
-        # TODO: check if we really need to increament wrapper delay by n
-        self.ideal_delay += n
-        self.write('a2w', ('delay',n), n)
-        m = waits(self.pump, self.channels['w2a']);
-        assert m.msg == "OK", str(m.msg)
-        self.sim_leaks.extend(leaks)
+            if n > 0:
+                # self.tick(1) => TODO
+                # add delay from new "schedules" in simulated wrapper to ideal-world wrapper
+                self.log.debug('Add n={} delay to ideal world wrapper'.format(n))
+                # TODO: check if we really need to increament wrapper delay by n
+                self.ideal_delay += n
+                print('\n\n right before delay', n)
+                self.write('a2w', ('delay',n), n)
+                m = waits(self.pump, self.channels['w2a']);
+                assert m.msg == ("OK",), str(m.msg)
+                self.sim_leaks.extend(leaks)
 
     def sim_party_output(self, m):
         # If we got output from the party, it outputed a msg to
@@ -447,22 +450,23 @@ class Payment_Simulator(ITM):
             self.write('a2z', ('P2A', msg) )
             # don't do anything else since corrupt output in the ideal world doesn't get delivered
             return
-
-        elif msg[0] == 'pay' and fro == self.P_r: # receiver receives 'pay'
-            if self.ishonest(_sid, self.P_s):
-                rnd, idx = get_rnd_idx_and_update(msg)
-                self.write_and_wait_expect(
-                    ch='a2w', msg=(('exec', rnd, idx), 1),
-                    read='w2a', expect=('OK',)
-                )
-            else:
-                # TODO: when P_s is corrupt
-                pass
+        
+        # self.P_r and self.P_s is just the pid
+        elif msg[0] == 'pay' and _pid == self.P_r: # receiver receives 'pay'
+            #if self.ishonest(_sid, self.P_s):
+            rnd, idx = self.get_rnd_idx_and_update(msg)
+            self.write_and_wait_expect(
+                ch='a2w', msg=(('exec', rnd, idx), 1),
+                read='w2a', expect=('OK',)
+            )
+            #else:
+            #    # TODO: when P_s is corrupt
+            #    pass
 
         elif msg[0] == 'close':
             if self.first_close:
                 self.first_close = False
-                rnd, idx = get_rnd_idx_and_update(msg)
+                rnd, idx = self.get_rnd_idx_and_update(msg)
                 if rnd != None and idx != None:
                     self.write_and_wait_expect(
                         ch='a2w', msg=(('exec', rnd, idx), 1),
@@ -471,11 +475,12 @@ class Payment_Simulator(ITM):
                 else: # implies a corrupt party => Q: why?
                     pass
             else:
-                rnd, idx = get_rnd_idx_and_update(msg)
+                rnd, idx = self.get_rnd_idx_and_update(msg)
                 self.write_and_wait_expect(
                     ch='a2w', msg=(('exec', rnd, idx), 1),
                     read='w2a', expect=('OK',)
                 )
+        else: print('shit', msg, fro); self.pump.write('')
 
     '''
     search corresponding (rnd, idx) based on the message `m` in `ideal_queue`,
@@ -498,10 +503,10 @@ class Payment_Simulator(ITM):
         #     'msg_b': [(rnd1, idx1), (rnd2, idx2), ...],
         #     ...
         # }
-        for key, values in run_queue.items():
+        for key, values in self.run_queue.items():
             if len(values) == 0: # no (rnd, idx) for a specific msg
-                del(run_queue[key])
-            for index, pair in enumarate(values):
+                del(self.run_queue[key])
+            for index, pair in enumerate(values):
                 _rnd, _idx = pair
                 if _rnd == rnd:
                     run_queue[key][index] = (_rnd, _idx-1) # due to .pop(0)

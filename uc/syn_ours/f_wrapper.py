@@ -125,9 +125,10 @@ class Syn_FWrapper(UCWrapper):
         self.write('w2p', (sender, ('OK',)) )
 
     def adv_delay(self, t, imp):
+        print('imp', imp)
         self.assertimp(imp, t)
         self.delay += t
-        self.write('w2a', "OK" )
+        self.write('w2a', ("OK",) )
 
     def adv_execute(self, r, i):
         sender, ch, f,args = self.todo[r].pop(i)
@@ -148,6 +149,7 @@ class Syn_FWrapper(UCWrapper):
 
     def poll(self, imp):
         self.assertimp(imp, 1)
+        print("POLL message from Z")
         if self.delay > 0:
             self.delay -= 1
             self.write('w2a', ('poll',) )
@@ -228,7 +230,7 @@ class Syn_FWrapper(UCWrapper):
         msg = d.msg
         imp = d.imp
         #print('msg', msg)
-        if msg[0] == 'delay':
+        if msg[0] == 'delay':   
             self.adv_delay(msg[1], imp)
         elif msg[0] == 'exec':
             self.adv_execute(msg[1], msg[2])
