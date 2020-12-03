@@ -28,15 +28,16 @@ def env(k, static, z2p, z2f, z2a, z2w, a2z, p2z, f2z, w2z, pump):
 
     gevent.spawn(_a2z)
     gevent.spawn(_p2z)
+    
+    z2a.write( ('',), 1000 )
+    waits(pump)
+
 
     z2p.write( ((sid,P_s), ('balance',)) )
     waits(pump)
 
     # Should suceed
     z2p.write( ((sid,P_s), ('pay', 3)) )
-    waits(pump)
-
-    z2a.write( ('',), 1000 )
     waits(pump)
 
     z2w.write( ('poll',), 1 )
