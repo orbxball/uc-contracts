@@ -30,6 +30,7 @@ class G_Ledger(UCGlobalF):
         self.mempool = set()
         self.mempool_deadlines = defaultdict(list)
         self.confirmed_txs = defaultdict(set)
+        self.events = {} # [block_number] -> [event1, event2, ...]
         self.blocks = [[]]
         self.adv_tx_list = []
         self.start = True
@@ -76,6 +77,7 @@ class G_Ledger(UCGlobalF):
             self.pump.write('')
 
     def update_chain_state(self, new_block):
+        self.events[self.block_number] = []
         for tx,sig in new_block:
             to,fro,p,d = tx
             self.balances[ to ] += p
@@ -83,6 +85,12 @@ class G_Ledger(UCGlobalF):
 
             if to == 'contract':
                 self.contract.party_msg(self.tx_ref( fro, p, d ))
+
+                # update events
+                e = self.contract.cached_event
+                if e != None:
+                    self.events[self.block_number].append(e)
+                self.contract.cached_event = None
 
     def new_block(self):
         r = self.clock_round()

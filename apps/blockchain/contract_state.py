@@ -18,6 +18,7 @@ class Contract_State:
         self.flag = Flags.OK
         self.deadline = None
         self.applied = set()
+        self.cached_event = None
 
         self.deadline_amount = 7
         self.received_input = defaultdict(bool)
@@ -29,7 +30,7 @@ class Contract_State:
         #    # TODO: check all signatures
         #    if self.flag == Flags.DISPUTE:
         #        self.flag = Flags.OK
-        #        self.broadcast( ("EventOffChain", r) )
+        #        self.emit( ("EventOffChain", r) )
         #    self.bestRound = r
         #    self.state = state_
 
@@ -44,7 +45,7 @@ class Contract_State:
             if self.flag == Flag.DISPUTE:
                 self.flag = Flad.DISPUTE
                 self.deadline = T + self.deadline_amount 
-                self.broadcast( ("EventDispute", r, self.dealine) )
+                self.emit( ("EventDispute", r, self.dealine) )
             else:
                 self.pump.write('')
         else:
@@ -57,7 +58,7 @@ class Contract_State:
                 if T >= self.deadline:
                     self.state, o = self.update_f(self.state, self.round_input[r], [])
                     self.flag = Flag.OK
-                    self.broadcast( ("EventOffchain", r, self.state) )
+                    self.emit( ("EventOffchain", r, self.state) )
                     self.bestRound += 1
                 else: self.pump.write('')
             else: self.pump.write('')
@@ -73,4 +74,6 @@ class Contract_State:
     def party_msg(self, tx):
         print('tx', tx)
         getattr(self, tx['func'])(*tx['args'], tx)
-                
+
+    def emit(self, event):
+        self.cached_event = event
