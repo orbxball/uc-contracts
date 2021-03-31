@@ -745,7 +745,7 @@ class WrappedProtocolWrapper(ProtocolWrapper):
 
 def DuplexWrapper(f1, f1tag, f2, f2tag):
     def f(k, bits, crupt, sid, channels, pump, poly, importargs):
-        return GlobalFunctionalityWrapper(k , bits, crupt, sid, channels, pump, poly, importargs, f1, f1tag, f2, f2tag)
+        return GlobalFunctionalityWrapper(k , bits, crupt, sid, channels, pump, poly, importargs, [f1, f2], [f1tag, f2tag])
     return f
 
 def GlobalFWrapper( _fs, _ftags ):
