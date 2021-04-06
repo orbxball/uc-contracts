@@ -111,7 +111,7 @@ def env(k, static, z2p, z2f, z2a, z2w, a2z, p2z, f2z, w2z, pump):
 
     return transcript
 
-from uc.itm import wrappedPartyWrapper, DuplexWrapper
+from uc.itm import wrappedPartyWrapper, DuplexWrapper, GlobalFWrapper
 from uc.adversary import DummyWrappedAdversary
 from g_ledger import G_Ledger
 from uc.syn_ours import Syn_FWrapper
@@ -122,8 +122,8 @@ t1 = execWrappedUC(
     env,
     [('G_Ledger', G_Ledger)],
     wrappedPartyWrapper('G_Ledger'),
-#    Syn_FWrapper,
-    DuplexWrapper(Syn_FWrapper, 'Wrapper', G_Ledger, "G_Ledger"),
+    GlobalFWrapper([Syn_FWrapper, G_Ledger], ['Wrapper', 'G_Ledger']),
+    # DuplexWrapper(Syn_FWrapper, 'Wrapper', G_Ledger, 'G_Ledger'), => this way could also work
     DummyWrappedAdversary,
     None
 )
