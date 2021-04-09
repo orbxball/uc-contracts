@@ -803,7 +803,7 @@ class GlobalFunctionalityWrapper(ITM):
         _z2w,_w2z = self._newFID(self.z2wid, self.channels['w2z'], sid, tag)
         _p2w,_w2p = self._newFID(self.p2wid, self.channels['w2p'], sid, tag)
         _a2w,_w2a = self._newFID(self.a2wid, self.channels['w2a'], sid, tag)
-        _f2w,_w2f = self._newFID(self.a2wid, self.channels['w2f'], sid, tag)
+        _f2w,_w2f = self._newFID(self.f2wid, self.channels['w2f'], sid, tag)
         __2w,_w2_ = self._newFID(self._2wid, self.channels['w2_'], sid, tag)
 
         print('cls', cls)
@@ -831,8 +831,8 @@ class GlobalFunctionalityWrapper(ITM):
     def func_msg(self, m):
         print(f"msg: {m}")
         fro, ((sid,tag), msg) = m.msg
-        imp = d.imp
-        fid = getFID(self.f2wid, sid, tag)
+        imp = m.imp
+        fid = self.getFID(self.f2wid, sid, tag)
         fid.write( (fro, msg), imp )
 
     def _2w_msg(self, m):
