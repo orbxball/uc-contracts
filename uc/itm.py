@@ -315,13 +315,15 @@ class UCWrappedFunctionality(ITM):
 
     def leak(self, msg, imp):
         #self.channels['f2w'].write( ('leak', msg), imp)
-        self.write('f2w', ('leak',msg), imp)
+        # TODO: F_Wrapper tag is hard-coded
+        self.write('f2w', ((self.sid, 'F_Wrapper'), ('leak',msg)), imp)
         m = wait_for(self.channels['w2f']).msg
-        assert m == ('OK',)
+        assert m == ((self.sid, 'F_Wrapper'),('OK',))
 
     def clock_round(self):
         m = self.write_and_wait_for(
-            ch='f2w', msg=('clock-round',),
+            # TODO: F_Wrapper tag is hard-coded
+            ch='f2w', msg=((self.sid, 'F_Wrapper'), ('clock-round',)),
             imp=0, read='w2f'
         )
 
@@ -330,9 +332,10 @@ class UCWrappedFunctionality(ITM):
         return m.msg[1]
 
     def schedule(self, f, args, d):
+        # TODO: F_Wrapper tag is hard-coded
         self.write_and_wait_expect(
-            ch='f2w', msg=('schedule', f, args, d),
-            read='w2f', expect=('OK',)
+            ch='f2w', msg=((self.sid, 'F_Wrapper'),('schedule', f, args, d)),
+            read='w2f', expect=((self.sid, 'F_Wrapper'),('OK',))
         )
 
 class UCWrappedProtocol(ITM):
@@ -776,6 +779,7 @@ class GlobalFunctionalityWrapper(ITM):
 
         for _f_, _ftag_ in zip(_fs, _ftags):
             self.newFID(self.sid, _ftag_, _f_)
+            print(f" sid: {self.sid}, tag: {_ftag_}, f: {_f_}")
 
     def _newFID(self, _2fid, f2_, sid, tag):
         ff2_ = GenChannel(('write-translate',sid,tag))
@@ -793,11 +797,7 @@ class GlobalFunctionalityWrapper(ITM):
         return (_2ff, ff2_) 
     
     def getFID(self, _2pid, sid,tag):
-        if (sid,tag) in _2pid: return _2pid[sid,tag]
-        else:
-            cls = self.tagtocls[tag]
-            self.newFID(sid, tag, cls)
-            return _2pid[sid,tag]
+        return _2pid[sid,tag]
     
     def newFID(self, sid, tag, cls):
         _z2w,_w2z = self._newFID(self.z2wid, self.channels['w2z'], sid, tag)
@@ -829,6 +829,7 @@ class GlobalFunctionalityWrapper(ITM):
         fid.write( msg, imp )
 
     def func_msg(self, m):
+        print(f"msg: {m}")
         fro, ((sid,tag), msg) = m.msg
         imp = d.imp
         fid = getFID(self.f2wid, sid, tag)
@@ -952,7 +953,7 @@ class WrappedFunctionalityWrapper(FunctionalityWrapper):
 
     def wrapper_msg(self, m):
         print('wrapper message', m)
-        ((sid,tag),msg) = m.msg
+        (fro, ((sid,tag), msg)) = m.msg
         imp = m.imp
         fid = self.getFID(self.w2fid, sid, tag)
-        fid.write( msg, imp )
+        fid.write( (fro, msg), imp )
