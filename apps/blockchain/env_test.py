@@ -44,58 +44,58 @@ def env(k, static, z2p, z2f, z2a, z2w, a2z, p2z, f2z, w2z, pump):
     tx = (receiver_vk.to_string(), sender_vk.to_string(), 10, None)
     tx_sender_sig = sender_sk.sign(str(tx).encode())
 
-    print('send-tx')
-    z2p.write( ((sid,1), ('send-tx', (tx, tx_sender_sig))) )
-    waits(pump)
+    # print('send-tx')
+    # z2p.write( ((sid,1), ('send-tx', (tx, tx_sender_sig))) )
+    # waits(pump)
     
-    print('select-tx')
-    z2a.write( ('A2F', ((sid, 'G_Ledger'), ('select-tx', [(tx, tx_sender_sig)])), 0) )
-    waits(pump)
+    # print('select-tx')
+    # z2a.write( ('A2F', ((sid, 'G_Ledger'), ('select-tx', [(tx, tx_sender_sig)])), 0) )
+    # waits(pump)
 
-    error = False
-    if error:
-        z2a.write( ('A2W', ('callme', 1), 0) )
-        waits(pump)
+    # error = False
+    # if error:
+    #     z2a.write( ('A2W', ('callme', 1), 0) )
+    #     waits(pump)
 
-        z2w.write( ('poll',), 1)
-        waits(pump)
-        z2w.write( ('poll',), 1)
-        waits(pump)
-        z2w.write( ('poll',), 1)
-        waits(pump)
+    #     z2w.write( ('poll',), 1)
+    #     waits(pump)
+    #     z2w.write( ('poll',), 1)
+    #     waits(pump)
+    #     z2w.write( ('poll',), 1)
+    #     waits(pump)
 
-        z2a.write( ('A2W', ('exec', 6, 0), 0) )
-        waits(pump)
-    else:
-        z2a.write( ('A2W', ('callme', 3), 0) )
-        waits(pump)
+    #     z2a.write( ('A2W', ('exec', 6, 0), 0) )
+    #     waits(pump)
+    # else:
+    #     z2a.write( ('A2W', ('callme', 3), 0) )
+    #     waits(pump)
 
-        z2w.write( ('poll',), 1)
-        waits(pump)
-        z2w.write( ('poll',), 1)
-        waits(pump)
-        z2w.write( ('poll',), 1)
-        waits(pump)
+    #     z2w.write( ('poll',), 1)
+    #     waits(pump)
+    #     z2w.write( ('poll',), 1)
+    #     waits(pump)
+    #     z2w.write( ('poll',), 1)
+    #     waits(pump)
 
-        z2a.write( ('A2W', ('exec', 6, 0), 0) )
-        waits(pump)
+    #     z2a.write( ('A2W', ('exec', 6, 0), 0) )
+    #     waits(pump)
 
-    tx = ('contract', sender_vk.to_string(), 1, ('evidence', (1, 2, 3, 4) ))
-    tx_sender_sig = sender_sk.sign(str(tx).encode()) 
+    # tx = ('contract', sender_vk.to_string(), 1, ('evidence', (1, 2, 3, 4) ))
+    # tx_sender_sig = sender_sk.sign(str(tx).encode()) 
 
-    z2p.write( ((sid,1), ('send-tx', (tx, tx_sender_sig))) )
-    waits(pump)
+    # z2p.write( ((sid,1), ('send-tx', (tx, tx_sender_sig))) )
+    # waits(pump)
 
-    z2a.write( ('A2F', ((sid, 'G_Ledger'), ('select-tx', [(tx, tx_sender_sig)])), 0) )
-    waits(pump)
+    # z2a.write( ('A2F', ((sid, 'G_Ledger'), ('select-tx', [(tx, tx_sender_sig)])), 0) )
+    # waits(pump)
 
-    z2w.write( ('poll',), 1)
-    waits(pump)
-    z2w.write( ('poll',), 1)
-    waits(pump)
+    # z2w.write( ('poll',), 1)
+    # waits(pump)
+    # z2w.write( ('poll',), 1)
+    # waits(pump)
 
         
-    print('tx_sender_sig', tx_sender_sig)
+    # print('tx_sender_sig', tx_sender_sig)
 
     return transcript
 
