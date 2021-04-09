@@ -120,10 +120,10 @@ from uc.execuc import execWrappedUC
 t1 = execWrappedUC(
     128,
     env,
-    [('G_Ledger', G_Ledger)],
+    [('G_Ledger', G_Ledger)], # TODO: this line is not logical b/c G_ledger is not a local functionality
     wrappedPartyWrapper('G_Ledger'),
     GlobalFWrapper([Syn_FWrapper, G_Ledger], ['Wrapper', 'G_Ledger']),
-    # DuplexWrapper(Syn_FWrapper, 'Wrapper', G_Ledger, 'G_Ledger'), => this way could also work
+    # DuplexWrapper(Syn_FWrapper, 'Wrapper', G_Ledger, 'G_Ledger'), => this could also work by replacing above line
     DummyWrappedAdversary,
     None
 )
