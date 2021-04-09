@@ -99,7 +99,7 @@ def env(k, static, z2p, z2f, z2a, z2w, a2z, p2z, f2z, w2z, pump):
 
     return transcript
 
-from uc.itm import wrappedPartyWrapper
+from uc.itm import wrappedPartyWrapper, GlobalFWrapper
 from uc.adversary import DummyWrappedAdversary
 from g_ledger import G_Ledger
 from uc.syn_ours import Syn_FWrapper
@@ -108,9 +108,9 @@ from uc.execuc import execWrappedUC
 t1 = execWrappedUC(
     128,
     env,
-    [('G_Ledger', G_Ledger)],
+    [('G_Ledger', G_Ledger)], # TODO: this line is not logical b/c G_ledger is not a local functionality
     wrappedPartyWrapper('G_Ledger'),
-    Syn_FWrapper,
+    GlobalFWrapper([Syn_FWrapper, G_Ledger], ['Wrapper', 'G_Ledger']),
     DummyWrappedAdversary,
     None
 )
