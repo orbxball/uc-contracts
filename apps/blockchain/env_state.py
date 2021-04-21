@@ -1,4 +1,5 @@
 from uc.utils import waits
+from ecdsa import VerifyingKey, SigningKey, NIST384p
 import gevent
 import logging
 
@@ -36,6 +37,28 @@ def env(k, static, z2p, z2f, z2a, z2w, a2z, p2z, f2z, w2z, pump):
 
     gevent.spawn(_a2z)
     gevent.spawn(_p2z)
+
+
+    # generate a key
+    sender_sk = SigningKey.generate()
+    sender_vk = sender_sk.verifying_key
+    receiver_sk = SigningKey.generate()
+    receiver_vk = receiver_sk.verifying_key
+
+    print(f"sender key: {sender_sk}")
+    print(f"receiver key: {receiver_sk}")
+
+    # sign msg
+    print()
+    tx = "hello"
+    tx_sender_sig = sender_sk.sign(str(tx).encode())
+    print(f">>> sender signed msg {tx_sender_sig}")
+
+    # verify msg
+    print(f">>> msg: {str(tx).encode()}")
+    is_verified = sender_vk.verify(tx_sender_sig, str(tx).encode())
+    print(f">>> verfication: {is_verified} \n")
+
 
     z2p.write( ((sid,P_1), ('input', 12)) )
     waits(pump)
