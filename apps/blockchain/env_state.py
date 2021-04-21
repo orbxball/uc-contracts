@@ -85,9 +85,11 @@ def env(k, static, z2p, z2f, z2a, z2w, a2z, p2z, f2z, w2z, pump):
 
     return transcript
 
-from uc.itm import wrappedPartyWrapper, GlobalFWrapper
+from uc.itm import wrappedPartyWrapper, wrappedProtocolWrapper, GlobalFWrapper
 from uc.adversary import DummyWrappedAdversary
 from g_ledger import G_Ledger
+from contract_sprite import Contract_Sprite
+from statechannel.prot_sprite import Prot_Sprite
 from statechannel.f_state import F_State
 from uc.syn_ours import Syn_FWrapper
 from uc.execuc import execWrappedUC
@@ -98,6 +100,16 @@ t1 = execWrappedUC(
     env,
     [('F_state', F_State)],
     wrappedPartyWrapper('F_state'),
+    GlobalFWrapper([Syn_FWrapper, G_Ledger], ['F_Wrapper', 'G_Ledger']),
+    DummyWrappedAdversary,
+    None
+)
+
+t2 = execWrappedUC(
+    128,
+    env,
+    [('F_contract', Contract_Sprite)],
+    wrappedProtocolWrapper(Prot_Sprite),
     GlobalFWrapper([Syn_FWrapper, G_Ledger], ['F_Wrapper', 'G_Ledger']),
     DummyWrappedAdversary,
     None
