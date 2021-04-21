@@ -59,13 +59,6 @@ def env(k, static, z2p, z2f, z2a, z2w, a2z, p2z, f2z, w2z, pump):
     for _ in range(3):
         z2w.write( ((sid, 'F_Wrapper'),('poll',)), 1 )
         waits(pump)
-   
-    # z2a.write( ('A2W', ((sid, 'F_Wrapper'), ('exec', 7, 0,)), 0) )
-    # waits(pump)
-   
-    for _ in range(2):
-        z2w.write( ((sid, 'F_Wrapper'),('poll',)), 1)
-        waits(pump)
 
     return transcript
 
