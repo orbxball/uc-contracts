@@ -1,22 +1,31 @@
 from uc.itm import UCWrappedProtocol
 from uc.utils import wait_for
+
+from ecdsa import VerifyingKey, SigningKey, NIST384p
+
 import logging
 log = logging.getLogger(__name__)
+
 
 class Prot_Sprite(UCWrappedProtocol):
     def __init__(self, k, bits, sid, pid, channels, pump, poly, importargs):
         self.ssid = sid[0]
-        self.parties = sid[1]
-        self.id = sid[2]
-        self.delta = sid[2]
+        self.func = sid[1]
+        self._what_is_this = sid[2] # Q: what is this argument
+        self.parties = sid[3]
+        self.delta = sid[4]
 
         UCWrappedProtocol.__init__(self, k, bits, sid, pid, channels, poly, pump, importargs)
 
         self.nonce = 0
-        self.state = (self.b_s, self.b_r, self.nonce)
-        #self.states = [] # (nonce) => {nonce, balances}
-        #self.sigs = [] # (nonce) => [None] * self.n
-        self.flag = 'OPEN'
+        self.states = [] # (nonce) => {nonce, balances}
+        self.sigs = [] # (nonce) => [None] * self.n
+
+        self.isDealer = False
+        if self.pid == self.parties[0]: self.isDealer == True
+
+        self.sk = SigningKey.generate()
+        self.vk = self.sk.verifying_key
 
 
     def check_sig(self, _sig, _state, _signer):
