@@ -20,37 +20,26 @@ class Prot_Sprite(UCWrappedProtocol):
 
 
     def check_sig(self, _sig, _state, _signer):
+        # TODO: verify signatutre
         return True
 
+
+    def open(self):
+        # TODO: open a sprite channel by spawning a contract
+        self.pump.write('')
+
+
     def pay(self, v):
-        if self.b_s >= v:
-            self.b_s -= v
-            self.b_r += v
-            self.nonce += 1
-            self.state = (self.b_s, self.b_r, self.nonce)
-            self.write('p2f', 
-                ((self.sid, 'F_contract'), # (sid, tag)
-                 ("send", self.P_r, ("pay", self.state, 'P_s sig'), 0) # msg
-                )
-            )
-            assert wait_for(self.channels['f2p']).msg[1] == 'OK'
-            self.write('p2z', 'OK')
-        else:
-            self.pump.write('')
+        # TODO: off chain payment
+        self.pump.write('')
+
 
     def close(self):
-        if self.flag == "OPEN":
-            self.flag = "CLOSE"
-            self.write('p2f', 
-                ((self.sid, 'F_contract'), # (sid, tag)
-                 ('close', self.state, '') # msg
-                )
-            )
-            assert wait_for(self.channels['f2p']).msg[1] == 'OK'
-        self.write('p2z', 'OK')
-        
+        # TODO: close the sprite channel
+
 
     def env_msg(self, d):
+        # TODO: define what env msgs could tell
         msg = d.msg
         imp = d.imp
 
@@ -65,7 +54,9 @@ class Prot_Sprite(UCWrappedProtocol):
         else:
             self.pump.write('')
 
+
     def recv_pay(self, _state, _sig):
+        # TODO: actions on receiving off-chain payment
         _b_s, _b_r, _nonce = _state
         if self.flag == "OPEN" and _b_s <= self.b_s and _b_s >= 0 and _b_r >= self.b_r and _nonce == self.nonce + 1 and self.check_sig(_sig, _state, self.P_s):
             v = self.b_s - _b_s
@@ -76,7 +67,9 @@ class Prot_Sprite(UCWrappedProtocol):
             self.write('p2z', ("pay", v))
         else: self.pump.write('')
 
+
     def recv_uncoopclose(self, _state, _deadline):
+        # TODO: actions on receiving uncooperative close notification
         if self.flag == "OPEN":
             _b_s, _b_r, _nonce = _state
             print('always recognize as an uncoopclose')
@@ -89,7 +82,9 @@ class Prot_Sprite(UCWrappedProtocol):
             self.flag = "CLOSE"
         self.pump.write('')
 
+
     def func_msg(self, d):
+        # TODO: actions on receiving from ideal functionality
         msg = d.msg
         imp = d.imp
         (sender, msg) = msg
