@@ -3,7 +3,7 @@ from uc.utils import wait_for, waits
 from collections import defaultdict
 import gevent
 import logging
-from ecdsa import NIST384p, VerifyingKey
+from ecdsa import NIST384p, VerifyingKey, SigningKey
 
 log = logging.getLogger(__name__)
 
@@ -35,6 +35,15 @@ class G_Ledger(UCGlobalF):
         self.adv_tx_list = []
         self.start = True
 
+        self.keys = {} # {pid: v-key}
+
+
+    def register_key(self, key):
+        self.keys[_from] = key # Q: how can I get the _from from _2w channel
+
+    def print_keys(self):
+        for pid, key in self.keys.items():
+            print('party id: {}, key: {}'.format(idx, key))
 
     def print_mempool(self):
         print('\n Mempool: {}\n'.format(self.mempool))
@@ -177,4 +186,3 @@ class G_Ledger(UCGlobalF):
             self.write('w2z', ('balances', self.balances))
         else:
             self.pump.write('')
-        

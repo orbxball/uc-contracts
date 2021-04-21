@@ -28,6 +28,16 @@ class Prot_Sprite(UCWrappedProtocol):
         self.vk = self.sk.verifying_key
 
 
+    def register_key(self):
+        _import = 0
+        self.write_and_wait_expect(
+            ch='p2w', msg=(
+                (self.sid, 'G_ledger'), ('register_key', (self.vk), _import)
+            ),
+            read='w2p', expect=((self.sid, 'Wrapper'), ('OK',))
+        )
+
+
     def check_sig(self, _sig, _state, _signer):
         # TODO: verify signatutre
         return True
