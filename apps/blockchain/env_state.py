@@ -10,7 +10,7 @@ def update_f(state, inputs, aux_in):
     if state_ is None: state_ = 0
     print('\nstate', state_)
     print('\ninputs', inputs)
-    for pid in inputs:
+    for pid in inputs.keys():
         if inputs[pid]: state_ += inputs[pid]
     return state_, []
 
@@ -116,5 +116,5 @@ t2 = execWrappedUC(
 )
 
 print('\nTranscript')
-for i in t1:
+for i in t2:
     print(i)
