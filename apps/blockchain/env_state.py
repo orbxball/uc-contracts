@@ -63,25 +63,25 @@ def env(k, static, z2p, z2f, z2a, z2w, a2z, p2z, f2z, w2z, pump):
     z2p.write( ((sid,P_1), ('input', 12)) )
     waits(pump)
 
-    z2a.write( ('A2W', ((sid, 'F_Wrapper'), ('callme', 4)), 0) )
-    waits(pump)
+    # z2a.write( ('A2W', ((sid, 'F_Wrapper'), ('callme', 4)), 0) )
+    # waits(pump)
     
-    for _ in range(3):
-        z2w.write( ((sid, 'F_Wrapper'),('poll',)), 1 )
-        waits(pump)
+    # for _ in range(3):
+    #     z2w.write( ((sid, 'F_Wrapper'),('poll',)), 1 )
+    #     waits(pump)
 
-    z2a.write( ('A2W', ((sid, 'F_Wrapper'), ('exec', 7, 0,)), 0) )
-    waits(pump)
+    # z2a.write( ('A2W', ((sid, 'F_Wrapper'), ('exec', 7, 0,)), 0) )
+    # waits(pump)
 
-    z2a.write( ('A2W', ((sid, 'F_Wrapper'), ('callme', 6)), 0) )
-    waits(pump)
+    # z2a.write( ('A2W', ((sid, 'F_Wrapper'), ('callme', 6)), 0) )
+    # waits(pump)
 
-    z2p.write( ((sid, P_3), ('input', 1)) )
-    waits(pump)
+    # z2p.write( ((sid, P_3), ('input', 1)) )
+    # waits(pump)
 
-    for _ in range(3):
-        z2w.write( ((sid, 'F_Wrapper'),('poll',)), 1 )
-        waits(pump)
+    # for _ in range(3):
+    #     z2w.write( ((sid, 'F_Wrapper'),('poll',)), 1 )
+    #     waits(pump)
 
     return transcript
 
@@ -95,15 +95,15 @@ from uc.syn_ours import Syn_FWrapper
 from uc.execuc import execWrappedUC
 
 
-t1 = execWrappedUC(
-    128,
-    env,
-    [('F_state', F_State)],
-    wrappedPartyWrapper('F_state'),
-    GlobalFWrapper([Syn_FWrapper, G_Ledger], ['F_Wrapper', 'G_Ledger']),
-    DummyWrappedAdversary,
-    None
-)
+# t1 = execWrappedUC(
+#     128,
+#     env,
+#     [('F_state', F_State)],
+#     wrappedPartyWrapper('F_state'),
+#     GlobalFWrapper([Syn_FWrapper, G_Ledger], ['F_Wrapper', 'G_Ledger']),
+#     DummyWrappedAdversary,
+#     None
+# )
 
 t2 = execWrappedUC(
     128,
