@@ -38,8 +38,8 @@ class G_Ledger(UCGlobalF):
         self.keys = {} # {pid: v-key}
 
 
-    def register_key(self, key):
-        self.keys[_from] = key # Q: how can I get the _from from _2w channel
+    def register_key(self, _from, key):
+        self.keys[_from] = key
 
     def print_keys(self):
         for pid, key in self.keys.items():
@@ -82,6 +82,8 @@ class G_Ledger(UCGlobalF):
             self.new_tx(sender, msg[1])
         elif msg[0] == 'contract-tx':
             self.contract_tx(self, msg)
+        elif msg[0] == 'register_key':
+            self.register_key(pid, msg[1])
         else:   
             self.pump.write('')
 
