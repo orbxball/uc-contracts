@@ -22,6 +22,7 @@ class G_Ledger(UCGlobalF):
         self.delta = sid[4]
 
         UCGlobalF.__init__(self, k, bits, crupt, sid, pid, channels, poly, pump, importargs)
+        self.handlers[self.channels['_2w']] = self._2w_msg
 
         self.block_number = 0
         self.last_block_round = 0
@@ -37,6 +38,18 @@ class G_Ledger(UCGlobalF):
 
         self.keys = {} # {pid: v-key}
 
+
+    def _2w_msg(self, d):
+        msg = d.msg
+        imp = d.imp
+        sender,msg = msg
+
+        # TODO: some msgs received from F_Wrapper
+        if msg[0] == 'action1':
+            # TODO: the handler for msg 'actions1' e.g. self.handle()
+            self.pump.write('')
+        else:
+            self.pump.write('')
 
     def register_key(self, _from, key):
         self.keys[_from] = key
