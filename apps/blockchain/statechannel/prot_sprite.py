@@ -27,12 +27,14 @@ class Prot_Sprite(UCWrappedProtocol):
         self.sk = SigningKey.generate()
         self.vk = self.sk.verifying_key
 
+        self.start = True; # whether it's just spawn or not
+
 
     def register_key(self):
         _import = 0
         self.write_and_wait_expect(
             ch='p2w', msg=(
-                (self.sid, 'G_ledger'), ('register_key', (self.vk), _import)
+                (self.sid, 'G_ledger'), ('register_key', (self.vk,), _import)
             ),
             read='w2p', expect=((self.sid, 'Wrapper'), ('OK',))
         )
