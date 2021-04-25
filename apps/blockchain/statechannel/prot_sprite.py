@@ -55,6 +55,7 @@ class Prot_Sprite(UCWrappedProtocol):
 
     def close(self):
         # TODO: close the sprite channel
+        self.pump.write('')
 
 
     def env_msg(self, d):
@@ -67,6 +68,9 @@ class Prot_Sprite(UCWrappedProtocol):
             self.pay(v)
         elif msg[0] == "close":
             self.close()
+        elif msg[0] == "input":
+            # TODO: receive 'input' instruction from env
+            self.pump.write('')
         elif msg[0] == "balance":
             if self.pid == self.P_s: self.write('p2z', ('balance', self.b_s))
             else: self.write('p2z', ('balance', self.b_r))
@@ -104,6 +108,8 @@ class Prot_Sprite(UCWrappedProtocol):
 
     def func_msg(self, d):
         # TODO: actions on receiving from ideal functionality
+
+        # TODO: during `self.start` => register key
         msg = d.msg
         imp = d.imp
         (sender, msg) = msg
