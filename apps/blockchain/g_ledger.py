@@ -80,8 +80,6 @@ class G_Ledger(UCGlobalF):
 
         if msg[0] == 'send-tx':
             self.new_tx(sender, msg[1])
-        elif msg[0] == 'contract-tx':
-            self.contract_tx(self, msg)
         elif msg[0] == 'register_key':
             self.register_key(pid, msg[1])
         else:   
