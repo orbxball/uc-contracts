@@ -68,8 +68,8 @@ class G_Ledger(UCGlobalF):
         if self.start:
             print('Start')
             self.write_and_wait_expect(
-                ch='f2w', msg=('schedule', 'new_block', (), self.max_interval),
-                read='w2f', expect=('OK',)
+                ch='w2_', msg=((self.sid, 'F_Wrapper'), ('schedule', 'new_block', (), self.max_interval)),
+                read='_2w', expect=('OK',)
             )
             self.start = False
 
@@ -155,8 +155,8 @@ class G_Ledger(UCGlobalF):
     def wrapper_msg(self, d):
         if self.start:
             self.write_and_wait_expect(
-                ch='f2w', msg=('schedule', 'new_block', (), self.max_interval),
-                read='w2f', expect=('OK',)
+                ch='w2_', msg=((self.sid, 'F_Wrapper'), ('schedule', 'new_block', (), self.max_interval)),
+                read='_2w', expect=('OK',)
             )
             self.start = False
         msg = d.msg
