@@ -36,9 +36,8 @@ class Prot_Sprite(UCWrappedProtocol):
             ch='p2w', msg=(
                 (self.sid, 'G_Ledger'), ('register_key', (self.vk,), _import)
             ),
-            read='w2p', expect=((self.sid, 'F_Wrapper'), ('OK',))
+            read='w2p', expect=((self.sid, 'G_Ledger'), ('OK',))
         )
-
 
     def check_sig(self, _sig, _state, _signer):
         # TODO: verify signatutre
