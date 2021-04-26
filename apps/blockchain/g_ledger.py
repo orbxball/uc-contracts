@@ -57,6 +57,13 @@ class G_Ledger(UCGlobalF):
         for pid, key in self.keys.items():
             print('party id: {}, key: {}'.format(idx, key))
 
+    def on_activation(self):
+        # schedule a new block to f_wrapper via internal wrapper communication
+        self.write_and_wait_expect(
+            ch='w2_', msg=((self.sid, 'F_Wrapper'), ('schedule', 'new_block', (), self.max_interval)),
+            read='_2w', expect=((self.sid, 'F_Wrapper'), ('OK',))
+        )
+
     def print_mempool(self):
         print('\n Mempool: {}\n'.format(self.mempool))
 
@@ -150,10 +157,7 @@ class G_Ledger(UCGlobalF):
 
     def adv_msg(self, d):
         if self.start:
-            self.write_and_wait_expect(
-                ch='w2_', msg=((self.sid, 'F_Wrapper'), ('schedule', 'new_block', (), self.max_interval)),
-                read='_2w', expect=((self.sid, 'F_Wrapper'), ('OK',))
-            )
+            self.on_activation()
             self.start = False
 
         msg = d.msg
@@ -166,10 +170,7 @@ class G_Ledger(UCGlobalF):
 
     def wrapper_msg(self, d):
         if self.start:
-            self.write_and_wait_expect(
-                ch='w2_', msg=((self.sid, 'F_Wrapper'), ('schedule', 'new_block', (), self.max_interval)),
-                read='_2w', expect=((self.sid, 'F_Wrapper'), ('OK',))
-            )
+            self.on_activation()
             self.start = False
         msg = d.msg
         imp = d.imp
@@ -184,13 +185,8 @@ class G_Ledger(UCGlobalF):
 
     def env_msg(self, d):
         if self.start:
-            print('trying to start')
-            self.write_and_wait_expect(
-                ch='w2_', msg=((self.sid, 'F_Wrapper'), ('schedule', 'new_block', (), self.max_interval)),
-                read='_2w', expect=((self.sid, 'F_Wrapper'), ('OK',))
-            )
+            self.on_activation()
             self.start = False
-        print('finished start') 
         msg = d.msg
         imp = d.imp
         self.pump.write('')
