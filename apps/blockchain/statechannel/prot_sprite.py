@@ -34,9 +34,9 @@ class Prot_Sprite(UCWrappedProtocol):
         _import = 0
         self.write_and_wait_expect(
             ch='p2w', msg=(
-                (self.sid, 'G_ledger'), ('register_key', (self.vk,), _import)
+                (self.sid, 'G_Ledger'), ('register_key', (self.vk,), _import)
             ),
-            read='w2p', expect=((self.sid, 'Wrapper'), ('OK',))
+            read='w2p', expect=((self.sid, 'F_Wrapper'), ('OK',))
         )
 
 
