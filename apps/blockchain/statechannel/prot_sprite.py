@@ -109,9 +109,12 @@ class Prot_Sprite(UCWrappedProtocol):
 
 
     def func_msg(self, d):
-        # TODO: actions on receiving from ideal functionality
+        if self.start:
+            print('Prot_Sprite:: on spawn')
+            self.register_key()
+            self.start = False
+            print('Prot_Sprite:: finish spawn actions')
 
-        # TODO: during `self.start` => register key
         msg = d.msg
         imp = d.imp
         (sender, msg) = msg
