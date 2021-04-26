@@ -85,11 +85,7 @@ class G_Ledger(UCGlobalF):
 
     def party_msg(self, d):
         if self.start:
-            print('Start')
-            self.write_and_wait_expect(
-                ch='w2_', msg=((self.sid, 'F_Wrapper'), ('schedule', 'new_block', (), self.max_interval)),
-                read='_2w', expect=('OK',)
-            )
+            self.on_activation()
             self.start = False
 
         msg = d.msg
