@@ -61,7 +61,12 @@ class Prot_Sprite(UCWrappedProtocol):
 
 
     def env_msg(self, d):
-        # TODO: define what env msgs could tell
+        if self.start:
+            print('Prot_Sprite::env:: on spawn')
+            self.register_key()
+            self.start = False
+            print('Prot_Sprite::env:: finish spawn actions')
+
         msg = d.msg
         imp = d.imp
 
@@ -110,10 +115,10 @@ class Prot_Sprite(UCWrappedProtocol):
 
     def func_msg(self, d):
         if self.start:
-            print('Prot_Sprite:: on spawn')
+            print('Prot_Sprite::func:: on spawn')
             self.register_key()
             self.start = False
-            print('Prot_Sprite:: finish spawn actions')
+            print('Prot_Sprite::func:: finish spawn actions')
 
         msg = d.msg
         imp = d.imp
