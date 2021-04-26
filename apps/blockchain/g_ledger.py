@@ -12,7 +12,6 @@ log = logging.getLogger(__name__)
 Functionality
 * 
 '''
-# TODO 
 class G_Ledger(UCGlobalF):
     def __init__(self, k, bits, crupt, sid, pid, channels, pump, poly, importargs):
         self.ssid = sid[0]
@@ -152,8 +151,8 @@ class G_Ledger(UCGlobalF):
     def adv_msg(self, d):
         if self.start:
             self.write_and_wait_expect(
-                ch='f2w', msg=('schedule', 'new_block', (), self.max_interval),
-                read='w2f', expect=('OK',)
+                ch='w2_', msg=((self.sid, 'F_Wrapper'), ('schedule', 'new_block', (), self.max_interval)),
+                read='_2w', expect=((self.sid, 'F_Wrapper'), ('OK',))
             )
             self.start = False
 
@@ -169,7 +168,7 @@ class G_Ledger(UCGlobalF):
         if self.start:
             self.write_and_wait_expect(
                 ch='w2_', msg=((self.sid, 'F_Wrapper'), ('schedule', 'new_block', (), self.max_interval)),
-                read='_2w', expect=('OK',)
+                read='_2w', expect=((self.sid, 'F_Wrapper'), ('OK',))
             )
             self.start = False
         msg = d.msg
@@ -187,8 +186,8 @@ class G_Ledger(UCGlobalF):
         if self.start:
             print('trying to start')
             self.write_and_wait_expect(
-                ch='w2_', msg=((self.sid, 'Wrapper'), ('schedule', 'new_block', (), self.max_interval)),
-                read='_2w', expect=((self.sid, 'Wrapper'), ('OK',))
+                ch='w2_', msg=((self.sid, 'F_Wrapper'), ('schedule', 'new_block', (), self.max_interval)),
+                read='_2w', expect=((self.sid, 'F_Wrapper'), ('OK',))
             )
             self.start = False
         print('finished start') 
