@@ -15,10 +15,10 @@ Functionality
 class G_Ledger(UCGlobalF):
     def __init__(self, k, bits, crupt, sid, pid, channels, pump, poly, importargs):
         self.ssid = sid[0]
-        self.contract = sid[1]
-        self.min_interval = sid[2]
-        self.max_interval = sid[3]
-        self.delta = sid[4]
+        self.update_f = sid[1]
+        self.contract = sid[2]
+        self.parties = sid[3]
+        self.max_interval = self.delta = sid[4]
 
         UCGlobalF.__init__(self, k, bits, crupt, sid, pid, channels, poly, pump, importargs)
         self.handlers[self.channels['_2w']] = self._2w_msg
