@@ -55,7 +55,7 @@ class G_Ledger(UCGlobalF):
 
     def print_keys(self):
         for pid, key in self.keys.items():
-            print('party id: {}, key: {}'.format(idx, key))
+            print('party id: {}, key: {}'.format(pid, key))
 
     def on_activation(self):
         # schedule a new block to f_wrapper via internal wrapper communication
@@ -63,6 +63,7 @@ class G_Ledger(UCGlobalF):
             ch='w2_', msg=((self.sid, 'F_Wrapper'), ('schedule', 'new_block', (), self.max_interval)),
             read='_2w', expect=((self.sid, 'F_Wrapper'), ('OK',))
         )
+        print(f"finished on_activation")
 
     def print_mempool(self):
         print('\n Mempool: {}\n'.format(self.mempool))
