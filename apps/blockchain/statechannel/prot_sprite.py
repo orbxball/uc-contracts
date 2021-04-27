@@ -39,6 +39,17 @@ class Prot_Sprite(UCWrappedProtocol):
             read='w2p', expect=((self.sid, 'G_Ledger'), ('OK',))
         )
 
+    def get_keys(self):
+        _import = 0
+        ret = self.write_and_wait_for(
+            ch='p2w', msg=(
+                (self.sid, 'G_Ledger'), ('get_keys', (self.vk,), _import)
+            ),
+            read='w2p'
+        )
+        _sender, _keys_dict = ret.msg
+        return _sender, _keys_dict
+
     def check_sig(self, _sig, _state, _signer):
         # TODO: verify signatutre
         return True
@@ -80,6 +91,10 @@ class Prot_Sprite(UCWrappedProtocol):
         elif msg[0] == "balance":
             if self.pid == self.P_s: self.write('p2z', ('balance', self.b_s))
             else: self.write('p2z', ('balance', self.b_r))
+        elif msg[0] == "get_keys":
+            _sender, _keys = self.get_keys()
+            print(f"keys are here: {_keys}")
+            self.write('p2z', ('keys', _keys))
         else:
             self.pump.write('')
 

@@ -53,6 +53,9 @@ class G_Ledger(UCGlobalF):
     def register_key(self, _from, key):
         self.keys[_from] = key
 
+    def get_keys(self):
+        return self.keys
+
     def print_keys(self):
         for pid, key in self.keys.items():
             print('party id: {}, key: {}'.format(pid, key))
@@ -99,6 +102,8 @@ class G_Ledger(UCGlobalF):
         elif msg[0] == 'register_key':
             self.register_key(pid, msg[1])
             self.write('w2p', (sender, ('OK',)))
+        elif msg[0] == 'get_keys':
+            self.write('w2p', (sender, (self.get_keys(),)))
         else:   
             self.pump.write('')
 

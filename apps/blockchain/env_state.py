@@ -63,6 +63,9 @@ def env(k, static, z2p, z2f, z2a, z2w, a2z, p2z, f2z, w2z, pump):
     z2p.write( ((sid,P_1), ('input', 12)) )
     waits(pump)
 
+    z2p.write( ((sid,P_1), ('get_keys',)) )
+    waits(pump)
+
     # z2a.write( ('A2W', ((sid, 'F_Wrapper'), ('callme', 4)), 0) )
     # waits(pump)
     
