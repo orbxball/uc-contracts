@@ -32,7 +32,7 @@ class Prot_Sprite(UCWrappedProtocol):
 
     def register_key(self):
         _import = 0
-        self.write_and_wait_expect(
+        ret = self.write_and_wait_expect(
             ch='p2w', msg=(
                 (self.sid, 'G_Ledger'), ('register_key', (self.vk,), _import)
             ),
