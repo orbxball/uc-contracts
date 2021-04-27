@@ -99,7 +99,8 @@ class Syn_FWrapper(UCGlobalF):
         self.write('w2a', ('OK',))
 
     def _2wschedule(self, sender, f, args, delta, imp):
-        log.debug('\033[1mFschedule\033[0m delta: {}, import: {}, sender: {}'.format(imp, delta, sender))
+        log.debug('\033[1mFschedule\033[0m delta: {}, import: {}, sender: {}'.format(delta, imp, sender))
+
         # add to the runqueue
         if self.curr_round+delta not in self.todo:
             self.todo[self.curr_round + delta] = []
