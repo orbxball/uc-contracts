@@ -98,6 +98,7 @@ class G_Ledger(UCGlobalF):
             self.new_tx(sender, msg[1])
         elif msg[0] == 'register_key':
             self.register_key(pid, msg[1])
+            self.write('w2p', (sender, ('OK',)))
         else:   
             self.pump.write('')
 
