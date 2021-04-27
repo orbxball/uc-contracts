@@ -739,12 +739,13 @@ class WrappedProtocolWrapper(ProtocolWrapper):
     def wrapper_msg(self, d):
         msg = d.msg
         imp = d.imp
-        (sid,pid),msg = msg
+        sender,msg = msg
+        (sid,pid), msg = msg
         if self.is_dishonest(sid,pid):
-            self.write('p2a', ((sid,pid), msg), 0)#imp)
+            self.write('p2a', ((sid,pid), (sender, msg)), 0)#imp)
         else:
             _pid = self.getPID(self.w2pid, sid, pid)
-            _pid.write( msg, imp )
+            _pid.write((sender, msg), imp )
 
 def DuplexWrapper(f1, f1tag, f2, f2tag):
     def f(k, bits, crupt, sid, channels, pump, poly, importargs):
