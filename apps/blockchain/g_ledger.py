@@ -39,14 +39,16 @@ class G_Ledger(UCGlobalF):
 
 
     def _2w_msg(self, d):
+        if self.start:
+            self.on_activation()
+            self.start = False
         msg = d.msg
         imp = d.imp
-        sender,msg = msg
 
-        # TODO: some msgs received from F_Wrapper
-        if msg[0] == 'action1':
-            # TODO: the handler for msg 'actions1' e.g. self.handle()
-            self.pump.write('')
+        if msg[0] == 'exec':
+            _, name, args = msg
+            f = getattr(self, name)
+            f(*args)
         else:
             self.pump.write('')
 
