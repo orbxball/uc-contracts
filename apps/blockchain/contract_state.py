@@ -10,7 +10,6 @@ class Flags:
     DISPUTE = 1
     PENDING = 2
 
-#class Contract_Statei_and_bcast(UCWrappedFunctionality):
 class Contract_State:
     def __init__(self, update_f):
         self.bestRound = -1
@@ -18,58 +17,51 @@ class Contract_State:
         self.flag = Flags.OK
         self.deadline = None
         self.applied = set()
+        self.update_f = update_f
+
         self.cached_event = None
 
-        self.deadline_amount = 7
+        self.deadline_amount = 7 # Q: is this the delta in sprite paper? why 7?
         self.received_input = defaultdict(bool)
         self.round_input = defaultdict(dict)
 
     def evidence(self, r, state_, out, sigs, tx):
         print('r: {}, state_: {}, out: {}, sigs: {}'.format(r, state_, out, sigs))
-        #if r > self.bestRound:
-        #    # TODO: check all signatures
-        #    if self.flag == Flags.DISPUTE:
-        #        self.flag = Flags.OK
-        #        self.emit( ("EventOffChain", r) )
-        #    self.bestRound = r
-        #    self.state = state_
+        if r > self.bestRound: return
 
-        #    # TODO: invoke aux contract
-        #    self.applied.add(r)
-        #else:
-        #    self.pump.write('')
+        # TODO: check all signatures on r||state||out
+        if self.flag == Flags.DISPUTE:
+           self.flag = Flags.OK
+           self.emit( ("EventOffChain", self.bestRound+1) )
+        self.bestRound = r
+        self.state = state_
+        # TODO: invoke aux contract
+        self.applied.add(r)
 
     def dispute(self, r, tx):
-        T = self.block_number()
-        if r == self.bestRound + 1:
-            if self.flag == Flag.DISPUTE:
-                self.flag = Flad.DISPUTE
-                self.deadline = T + self.deadline_amount 
-                self.emit( ("EventDispute", r, self.dealine) )
-            else:
-                self.pump.write('')
-        else:
-            self.pump.write('')
+        T = self.block_number() # Q: how to get the current block number
+        if r != self.bestRound+1: return
+        if self.flag != Flags.OK: return
+
+        self.flag = Flags.DISPUTE
+        self.deadline = T + self.deadline_amount
+        self.emit( ("EventDispute", r, self.dealine) )
 
     def resolve(self, r, tx):
         T = self.block_number()
-        if r == self.bestRound + 1:
-            if self.flag == Flag.PENDING:
-                if T >= self.deadline:
-                    self.state, o = self.update_f(self.state, self.round_input[r], [])
-                    self.flag = Flag.OK
-                    self.emit( ("EventOffchain", r, self.state) )
-                    self.bestRound += 1
-                else: self.pump.write('')
-            else: self.pump.write('')
-        else: self.pump.write('')
+        if r != self.bestRound + 1: return
+        if self.flag != Flags.PENDING: return
+        if T < self.deadline: return
 
-    def input(self, pid, r, inp, tx):
-        if not self.received_input[pid]:
-            self.received_input[pid] = True
-            self.round_input[self.round][pid] = inp
-        else:
-            self.pump.write('')
+        self.state, o = self.update_f(self.state, self.round_input[r], [])
+        self.flag = Flags.OK
+        self.emit( ("EventOnChain", r, self.state) )
+        self.bestRound += 1
+
+    def input(self, pid, r, _input, tx):
+        if self.received_input[pid]: return
+        self.received_input[pid] = True
+        self.round_input[self.round][pid] = _input
 
     def party_msg(self, tx):
         print('tx', tx)
