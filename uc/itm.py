@@ -17,6 +17,10 @@ class MSG:
     def __repr__(self):
         return 'MSG:' + str((self.msg,self.imp))
 
+'''
+This is the type of all of the channels in saucy.
+The channel has an id in variable self.i that is set almost everywhere you can print it out on both ends make sure they rae the same channel.
+'''
 class GenChannel(Event):
     def __init__(self, i=-1):
         Event.__init__(self)
@@ -56,6 +60,11 @@ def fwd(ch1, ch2):
             ch2.write( m.msg, m.imp )
     gevent.spawn(foo, ch1, ch2)
 
+'''
+ITM Context is the import/potential context for every ITM. It simply
+tracks amount of import used. It's a parameter passed into all ITMs by
+execUC and simulated ITMs are given the context of the simulator.
+'''
 class ITMContext:
     def __init__(self, poly):
         self.imp_in = 0
@@ -88,10 +97,14 @@ class ITM:
         self.handlers = handlers
         self.importargs = importargs
 
+        # Baically saying that if no ITM context was passed into the ITM
+        # then create a fresh context t ous.
         if 'ctx' not in importargs:
             self.ctx = ITMContext(self.poly)
         else:
+            # otherwise use the context given
             self.ctx = importargs['ctx']
+        # decide whether this execution uses the import mechanism
         if 'impflag' in importargs:
             self.impflag = importargs['impflag']
         else:
@@ -131,7 +144,12 @@ class ITM:
     def printstate(self):
         print('[sid={}, pid={}, imp_in={}, imp_out={}, spend={}, marked={}]'.format(self.sid, self.pid, self.imp_in, self.imp_out, self.spent, self.marked))
 
-
+    '''
+    ch: string
+    msg: tuple
+    imp: int
+    Write a message to channel self.channels[ch] with msg and imp
+    '''
     def write(self, ch, msg, imp=0):
         if self.impflag:
             if self.imp_in - self.imp_out + self.marked >= imp:
@@ -142,15 +160,32 @@ class ITM:
                 raise WriteImportError((self.sid,self.pid), msg, imp)
         else:
             self.channels[ch].write(msg, 0)
-
+            
+    '''
+        Just wait until the channel can be read from.
+        'wait_for' is implemented in utils 
+    '''
     def read(self, ch=None):
         return wait_for(self.channels[ch])
 
+    '''
+        write a message to a channel and then attempte to read from another channel
+        this captures write:
+            A write (msg) to B
+            A expects a message back and wais for it
+        returns the message m
+    '''
     def write_and_wait_for(self, ch=None, msg=None, imp=0, read=None):
         self.write(ch, msg, imp)
         m = self.read(read)
         return m
 
+    '''
+        Similar to above but now we expect a specific message when reading after
+        sending a message.
+        read: string <- channel to read from
+        expect: message expected
+    '''
     def write_and_wait_expect(self, ch=None, msg=None, imp=0, read=None, expect=None):
         m = self.write_and_wait_for(ch, msg, imp, read)
         assert m.msg == expect, 'Expected: {}, Received: {}'.format(expect, m.msg)
@@ -191,8 +226,14 @@ class ITM:
                 self.pump.write('dump')
 
 
+'''
+    The barebones UC protocol which can interact with a functionality and the adversary
+    does not support talkig to global functionalities.
+    * all UC protocols must implment handlers for adv, funv, and env messages
+'''
 class UCProtocol(ITM):
     def __init__(self, k, bits, sid, pid, channels, poly, pump, importargs):
+        # these are the channel it reads on and the associated handlers
         self.handlers = {
             channels['z2p'] : self.env_msg,
             channels['f2p'] : self.func_msg,
@@ -209,6 +250,11 @@ class UCProtocol(ITM):
     def env_msg(self, msg):
         Exception("env_msg needs to be defined")
 
+'''
+    Barebones UC functionality that reads from parties, adv, and environment.
+    NOTE: does not "really" read from environment because env can't write directly
+    to a non-global functionality like this.
+'''
 class UCFunctionality(ITM):
     def __init__(self, k, bits, crupt, sid, pid, channels, poly, pump, importargs):
         print('functionality:', 'pump', pump, 'poly', poly)
@@ -220,6 +266,9 @@ class UCFunctionality(ITM):
         }
         ITM.__init__(self, k, bits, sid, pid, channels, self.handlers, poly, pump, importargs)
 
+    '''
+        Functionalities, unlike protocols, knows who is honest and who is corrupt
+    '''
     def is_honest(self, sid, pid):
         return (sid,pid) in self.crupt
 
@@ -235,6 +284,10 @@ class UCFunctionality(ITM):
     def env_msg(self, msg):
         Exception("env_msg needs to be defined")
 
+'''
+    Generic adversary that reads on specific channels and knows who is corrupt.
+    See UC Protocol definition
+'''
 class UCAdversary(ITM):
     def __init__(self, k, bits, crupt, sid, pid, channels, poly, pump, importargs):
         self.crupt = crupt
@@ -257,6 +310,10 @@ class UCAdversary(ITM):
     def env_msg(self, d):
         Exception("env_msg needs to be implemented")
 
+'''
+    Same as above adversary but now reads/writes from a global functionality(s)
+    through wrapper_msf and writes through a2w
+'''
 class UCWrappedAdversary(ITM):
     def __init__(self, k, bits, crupt, sid, pid, channels, poly, pump, importargs):
         self.crupt = crupt
@@ -287,6 +344,9 @@ class UCWrappedAdversary(ITM):
 #    def __init__(self, k, bits, crupt, sid, pid, channels, poly, pump, importargs):
 #        UCWrappedFunctionality.__init__(self, k, bits, crupt, sid, pid, channels, poly, pump, importargs)
 
+'''
+    same as functionality by additional read/write from global functionality
+'''
 class UCWrappedFunctionality(ITM):
     def __init__(self, k, bits, crupt, sid, pid, channels, poly, pump, importargs):
         self.crupt = crupt
@@ -320,6 +380,9 @@ class UCWrappedFunctionality(ITM):
         m = wait_for(self.channels['w2f']).msg
         assert m == ((self.sid, 'F_Wrapper'),('OK',))
 
+    '''
+        Get the clock round from the F_wrapper
+    '''
     def clock_round(self):
         m = self.write_and_wait_for(
             # TODO: F_Wrapper tag is hard-coded
@@ -338,6 +401,9 @@ class UCWrappedFunctionality(ITM):
             read='w2f', expect=((self.sid, 'F_Wrapper'),('OK',))
         )
 
+'''
+    global functionalit version of UC protocol. See above wrapped classes descriptions.
+'''
 class UCWrappedProtocol(ITM):
     def __init__(self, k, bits, sid, pid, channels, poly, pump, importargs):
         self.handlers = {
@@ -363,6 +429,10 @@ class UCWrappedProtocol(ITM):
     def leak(self, msg):
         Exception("leak needs to be defined")
 
+'''
+    DOESNT SEEM TO BE USED ANYWHERE. DONT KNOW WHERE THIS CAME FROM BUT 
+    SAFE TO REMOVE?
+'''
 class UCGlobalF(ITM):
     def __init__(self, k, bits, crupt, sid, pid, channels, poly, pump, importargs):
         self.crupt = crupt
@@ -396,6 +466,10 @@ class UCGlobalF(ITM):
     def leak(self, msg):
         Exception("leak needs to be defined")
 
+
+'''
+    CREATED BY SHREYAS FOR HIS THESIS BYT NOT USED ANYMORE
+'''
 class UCAsyncWrappedFunctionality(UCWrappedFunctionality):
     def __init__(self, k, bits, crupt, sid, pid, channels):
         UCWrappedFunctionality.__init__(self, k, bits, crupt, sid, pid, channels)
@@ -405,7 +479,10 @@ class UCAsyncWrappedFunctionality(UCWrappedFunctionality):
         
     def eventually(self, msg):
         self.f2w(("eventually", msg))
-        
+    
+''' 
+    SAME AS ABOVE CLASS
+'''
 class UCAsyncWrappedProtocol(UCWrappedProtocol):
     def __init__(self, k, bits, sid, pid, channels):
         UCWrappedProtocol.__init__(self, k, bits, sid, pid, channels)
@@ -474,6 +551,10 @@ def partyWrapper(tof):
         return PartyWrapper(k, bits, crupt, sid, channels, pump, tof, poly, importargs)
     return f
 
+'''
+    Wrapper for the ideal world that runs dummy parties.
+    TODO: should only need one ProtocolWrapper parameterized by a protocol or the dummy protocol.
+'''
 class PartyWrapper(ITM):
     def __init__(self, k, bits, crupt, sid, channels, pump, tof, poly, importargs):
         self.crupt = crupt
@@ -495,12 +576,25 @@ class PartyWrapper(ITM):
     def is_honest(self, sid, pid):
         return not self.is_dishonest(sid,pid)
 
+    '''
+        Creates a pair of new channels (for in and out) and ties the outgoing
+        channel to the outcoing channel of the partywrapper and append PID to all messages
+        _2pid: dictionary that stores the incoming channls for each of the parties. There is one for each of f2p, a2p, and z2p channels. See self.f2id and the rest in the constructor.
+        p2_  : the party wrapper's OUTGOING channel to hook this party up to.
+        Example: _newPID called with (sid, pid, _2pid=self.f2pid, self.channels['p2f'], tag)
+                 self.f2pid stors the incoming p2f channel of the newly created party 
+    '''
     def _newPID(self, sid, pid, _2pid, p2_, tag):
+        # the new channels for the new party the write (then translate) channel and the read channel which is stored into _2pid
         pp2_ = GenChannel(('write-translate',sid,pid))
         _2pp = GenChannel(('read',sid,pid)) # _ to 
 
         def _translate():
             while True:
+                # read outgoing channel from party and appen the party's
+                # PID to the message. example: party writes "msg" to its p2f
+                # and this intercepts is and appends "pid" to "msg" and then 
+                # sends (pid, msg) on the actual p2f of the party wrapper
                 r = gevent.wait(objects=[pp2_],count=1)
                 m = r[0].read()
                 pp2_.reset('pp2_ translate reset')
@@ -510,18 +604,31 @@ class PartyWrapper(ITM):
         _2pid[sid,pid] = _2pp
         return (_2pp, pp2_) 
 
+    ''' 
+        Create new party of (sid, pid)
+    '''
     def newPID(self, sid, pid):
         print('[{}] Creating new party with pid: {}'.format(sid, pid))
+        # create the channels the party will communicate a long
+        # this function ties outgoing channels of the parties to the corresponding
+        # outgoing channel of party wrapper through the "translate" function above.
         _z2p,_p2z = self._newPID(sid, pid, self.z2pid, self.channels['p2z'], 'NA')
         _f2p,_p2f = self._newPID(sid, pid, self.f2pid, self.channels['p2f'], 'NA')
         _a2p,_p2a = self._newPID(sid, pid, self.a2pid, self.channels['p2a'], 'NA')
-        
+       
+        # spawn the ITM and run it in gevent
         itm = DummyParty(self.k, self.bits, self.sid, pid, {'a2p':_a2p,'p2a':_p2a, 'z2p':_z2p,'p2z':_p2z, 'f2p':_f2p,'p2f':_p2f}, self.poly, self.pump, self.importargs)
         gevent.spawn(itm.run)
 
+    '''
+        Get the correct channel to write the incoming message to based on who is writing: z2p, f2p or a2p and the pid of the party.
+        If the party does'nt exist create a newPID, store it's channels in the dictionary and then writ the message to it.
+    '''
     def getPID(self, _2pid, sid, pid):
+        # get the right channel to write the message to
         if (sid,pid) in _2pid: return _2pid[sid,pid]
         else:
+            # create the party then write the message to it
             self.newPID(sid, pid)
             return _2pid[sid,pid]
    
@@ -529,7 +636,11 @@ class PartyWrapper(ITM):
         msg = d.msg
         imp = d.imp
         (sid,pid),msg = msg
+
+        # corrupt parties can't get input from Z, only A
         if self.is_dishonest(sid,pid): raise Exception("Env writing to corrupt party: {}\n\tCruptset: {}".format((sid,pid), self.crupt))
+
+        # honest parties get input 
         _pid = self.getPID(self.z2pid,sid,pid)
         _pid.write( ((sid,self.tof), msg), imp )
 
@@ -538,6 +649,8 @@ class PartyWrapper(ITM):
         imp = d.imp
         print('func message', d)
         fro,((sid,pid),msg) = msg
+        
+        # corrupt parties are dummies and write back to A
         if self.is_dishonest(sid,pid):
             self.write( 'p2a', ((sid,pid), msg), 0)#imp)
         else:
@@ -548,9 +661,9 @@ class PartyWrapper(ITM):
         msg = d.msg
         imp = d.imp
         (sid,pid), msg = msg
+
+        # adv can only write to corrupt parties
         if self.is_honest(sid,pid): raise Exception("adv writing to honest party")
-        #_pid = self.getPID(self.a2pid, sid, pid)
-        #_pid.write( msg, imp )
         self.write( 'p2f', ((sid,pid), m.msg), m.imp )
 
 def protocolWrapper(prot):
@@ -581,11 +694,24 @@ class ProtocolWrapper(ITM):
     def is_honest(self, sid, pid):
         return not self.is_dishonest(sid,pid)
 
+    '''
+        Creates a pair of new channels (for in and out) and ties the outgoing
+        channel to the outcoing channel of the partywrapper and append PID to all messages
+        _2pid: dictionary that stores the incoming channls for each of the parties. There is one for each of f2p, a2p, and z2p channels. See self.f2id and the rest in the constructor.
+        p2_  : the party wrapper's OUTGOING channel to hook this party up to.
+        Example: _newPID called with (sid, pid, _2pid=self.f2pid, self.channels['p2f'], tag)
+                 self.f2pid stors the incoming p2f channel of the newly created party 
+    '''
     def _newPID(self, sid, pid, _2pid, p2_, tag):
+        # the new channels for the new party the write (then translate) channel and the read channel which is stored into _2pid
         pp2_ = GenChannel(('write-translate-{}'.format(tag),sid,pid)) 
         _2pp = GenChannel(('read-{}'.format(tag),sid,pid)) # _ to 
 
         def _translate():
+           # read outgoing channel from party and appen the party's
+           # PID to the message. example: party writes "msg" to its p2f
+           # and this intercepts is and appends "pid" to "msg" and then 
+           # sends (pid, msg) on the actual p2f of the party wrapper
            while True:
                 r = gevent.wait(objects=[pp2_],count=1)
                 m = r[0].read()
@@ -597,6 +723,9 @@ class ProtocolWrapper(ITM):
         return (_2pp, pp2_) 
 
     def newPID(self, sid, pid):
+        # create the channels the party will communicate a long
+        # this function ties outgoing channels of the parties to the corresponding
+        # outgoing channel of party wrapper through the "translate" function above.
         print('\033[1m[{}]\033[0m Creating new party with pid: {}'.format('PWrapper', pid))
         _z2p,_p2z = self._newPID(sid, pid, self.z2pid, self.channels['p2z'], 'p2z')
         _f2p,_p2f = self._newPID(sid, pid, self.f2pid, self.channels['p2f'], 'p2f')
@@ -605,6 +734,10 @@ class ProtocolWrapper(ITM):
         p = self.prot(self.k, self.bits, self.sid, pid, {'a2p':_a2p,'p2a':_p2a, 'z2p':_z2p,'p2z':_p2z, 'f2p':_f2p, 'p2f':_p2f}, self.poly, self.pump, self.importargs)
         gevent.spawn(p.run)
 
+    '''
+        Get the correct channel to write the incoming message to based on who is writing: z2p, f2p or a2p and the pid of the party.
+        If the party does'nt exist create a newPID, store it's channels in the dictionary and then writ the message to it.
+    '''
     def getPID(self, _2pid, sid, pid):
         if (sid,pid) in _2pid: return _2pid[sid,pid]
         else:
