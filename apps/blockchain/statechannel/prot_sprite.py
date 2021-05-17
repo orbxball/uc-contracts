@@ -18,6 +18,7 @@ class Prot_Sprite(UCWrappedProtocol):
         UCWrappedProtocol.__init__(self, k, bits, sid, pid, channels, poly, pump, importargs)
 
         self.nonce = 0
+        self.balances = [0]*len(self.parties) # pid => balance of pid
         self.states = [] # (nonce) => {nonce, balances}
         self.sigs = [] # (nonce) => [None] * self.n
 
@@ -89,8 +90,8 @@ class Prot_Sprite(UCWrappedProtocol):
             # TODO: receive 'input' instruction from env
             self.pump.write('')
         elif msg[0] == "balance":
-            if self.pid == self.P_s: self.write('p2z', ('balance', self.b_s))
-            else: self.write('p2z', ('balance', self.b_r))
+            _balance = self.balances[self.pid]
+            self.write('p2z', ('balance', _balance))
         elif msg[0] == "get_keys":
             _sender, _keys = self.get_keys()
             print(f"keys are here: {_keys}")

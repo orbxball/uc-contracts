@@ -16,9 +16,9 @@ def update_f(state, inputs, aux_in):
 
 def env(k, static, z2p, z2f, z2a, z2w, a2z, p2z, f2z, w2z, pump):
     delta = 2
-    P_1 = 1
-    P_2 = 2
-    P_3 = 3
+    P_1 = 0
+    P_2 = 1
+    P_3 = 2
     sid = ('sid', update_f, None, (P_1, P_2, P_3), delta)
     static.write( (('sid', sid), ('crupt',)) )
 
@@ -60,7 +60,7 @@ def env(k, static, z2p, z2f, z2a, z2w, a2z, p2z, f2z, w2z, pump):
     print(f">>> verfication: {is_verified} \n")
 
 
-    z2p.write( ((sid,P_1), ('input', 12)) )
+    z2p.write( ((sid,P_1), ('balance',)) )
     waits(pump)
 
     z2p.write( ((sid,P_1), ('get_keys',)) )
