@@ -93,6 +93,7 @@ from uc.adversary import DummyWrappedAdversary
 from g_ledger import G_Ledger
 from contract_state import Contract_State
 from statechannel.prot_sprite import Prot_Sprite
+from statechannel.channel import Broadcast_and_Offchain_Channel
 from statechannel.f_state import F_State
 from uc.syn_ours import Syn_FWrapper
 from uc.execuc import execWrappedUC
@@ -111,7 +112,7 @@ from uc.execuc import execWrappedUC
 t2 = execWrappedUC(
     128,
     env,
-    [('F_contract', Contract_State)],
+    [('F_channel', Broadcast_and_Offchain_Channel)],
     wrappedProtocolWrapper(Prot_Sprite),
     GlobalFWrapper([Syn_FWrapper, G_Ledger], ['F_Wrapper', 'G_Ledger']),
     DummyWrappedAdversary,
