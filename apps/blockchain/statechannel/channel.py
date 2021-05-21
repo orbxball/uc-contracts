@@ -51,6 +51,7 @@ class Broadcast_and_Offchain_Channel(UCWrappedFunctionality):
     def wrapper_msg(self, d):
         msg = d.msg
         imp = d.imp
+        (_sid, _from), (msg) = msg
         
         if msg[0] == 'exec':
             _,name,args = msg
