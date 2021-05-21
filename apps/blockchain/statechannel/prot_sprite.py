@@ -17,8 +17,8 @@ class Prot_Sprite(UCWrappedProtocol):
 
         UCWrappedProtocol.__init__(self, k, bits, sid, pid, channels, poly, pump, importargs)
 
-        self.nonce = 0
-        self.balances = [0]*len(self.parties) # pid => balance of pid
+        self.nonce = -1
+        self.balances = [10]*len(self.parties) # pid => balance of pid
         self.states = [] # (nonce) => {nonce, balances}
         self.sigs = [] # (nonce) => [None] * self.n
 
@@ -29,6 +29,7 @@ class Prot_Sprite(UCWrappedProtocol):
         self.vk = self.sk.verifying_key
 
         self.start = True; # whether it's just spawn or not
+        self.flag = "OPEN" # OPEN: has a channel open; CLOSE: no channel open
 
 
     def register_key(self):
@@ -61,9 +62,21 @@ class Prot_Sprite(UCWrappedProtocol):
         self.pump.write('')
 
 
-    def pay(self, v):
-        # TODO: off chain payment
-        self.pump.write('')
+    def pay(self, _from, _to, _amount):
+        if self.balances[_from] >= _amount:
+            self.balances[_from] -= _amount
+            self.balances[_to] += _amount
+            self.nonce += 1
+            self.state = (self.balances, self.nonce)
+            self.write('p2f',
+                ((self.sid, 'F_channel'), # (sid, tag)
+                 ("send", _to, ("pay", (_from, _to, _amount), self.state, 'P_s sig'), 0) # msg
+                )
+            )
+            assert wait_for(self.channels['f2p']).msg[1] == 'OK'
+            self.write('p2z', 'OK')
+        else:
+            self.pump.write('')
 
 
     def close(self):
@@ -81,9 +94,10 @@ class Prot_Sprite(UCWrappedProtocol):
         msg = d.msg
         imp = d.imp
 
-        if msg[0] == "pay" and self.pid == self.P_s:
-            _, v = msg
-            self.pay(v)
+        if msg[0] == "pay":
+            _sender = self.pid
+            _recipient, _amount = msg[1]
+            self.pay(_sender, _recipient, _amount)
         elif msg[0] == "close":
             self.close()
         elif msg[0] == "input":
@@ -100,16 +114,20 @@ class Prot_Sprite(UCWrappedProtocol):
             self.pump.write('')
 
 
-    def recv_pay(self, _state, _sig):
+    def recv_pay(self, _info, _state, _sig):
         # TODO: actions on receiving off-chain payment
-        _b_s, _b_r, _nonce = _state
-        if self.flag == "OPEN" and _b_s <= self.b_s and _b_s >= 0 and _b_r >= self.b_r and _nonce == self.nonce + 1 and self.check_sig(_sig, _state, self.P_s):
-            v = self.b_s - _b_s
-            self.state = _state
-            self.b_s = _b_s
-            self.b_r = _b_r
+        _sender, _recipient, _amount = _info
+        _balances, _nonce = _state
+        if self.flag == "OPEN" and _nonce == self.nonce + 1 and self.check_sig(_sig, _state, _sender):
+            self.balances[_sender] -= _amount
+            self.balances[_recipient] += _amount
             self.nonce = _nonce
-            self.write('p2z', ("pay", v))
+            assert self.balances == _balances
+
+            self.states.append(_state)
+            self.sigs.append(_sig)
+
+            self.write('p2z', ("pay", _info))
         else: self.pump.write('')
 
 
@@ -137,10 +155,11 @@ class Prot_Sprite(UCWrappedProtocol):
 
         msg = d.msg
         imp = d.imp
-        (sender, msg) = msg
-        if msg[0] == "pay" and self.pid == self.P_r:
-            _, _state, _sig = msg
-            self.recv_pay(_state, _sig)
+        ((_sid, _from), msg) = msg
+
+        if msg[0] == "pay":
+            _, _info, _state, _sig = msg
+            self.recv_pay(_info, _state, _sig)
         elif msg[0] == "UnCoopClose" and self.pid == self.P_r:
             _, _state, _deadline = msg
             self.recv_uncoopclose(_state, _deadline)
